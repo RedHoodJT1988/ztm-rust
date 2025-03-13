@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 struct Employee<State> {
     name: String,
     state: State,
@@ -13,6 +16,15 @@ struct OnboardingComplete {
     score: u8,
 }
 
+impl<State> Employee<State> {
+    fn transition<NextState>(self, state: NextState) -> Employee<NextState> {
+        Employee {
+            name: self.name,
+            state,
+        }
+    }
+}
+
 impl Employee<Agreement> {
     fn new(name: &str) -> Self {
         Self {
@@ -22,6 +34,12 @@ impl Employee<Agreement> {
     }
     fn read_agreement(self) -> Employee<Signature> {
         self.transition(Signature)
+    }
+}
+
+impl Employee<Signature> {
+    fn sign(self) -> Employee<Training> {
+        self.transition(Training)
     }
 }
 
@@ -38,4 +56,11 @@ impl Employee<Training> {
     }
 }
 
-fn main() {}
+fn main() {
+    let employee = Employee::new("Sara");
+    let onboarded = employee.read_agreement().sign().train(6);
+    match onboarded {
+        Ok(complete) => println!("onboarding complete"),
+        Err(failed) => println!("training failed, score: {}", failed.state.score),
+    }
+}
