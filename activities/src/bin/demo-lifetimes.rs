@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 #[derive(Debug)]
 struct Cards {
     inner: Vec<IdCard>,
@@ -27,6 +29,24 @@ impl IdCard {
     }
 }
 
+#[derive(Debug)]
+struct YoungPeople<'a> {
+    inner: Vec<&'a IdCard>,
+}
+
+impl<'a> YoungPeople<'a> {
+    fn living_in_fooville(&self) -> Self {
+        Self {
+            inner: self
+                .inner
+                .iter()
+                .filter(|id| id.city == City::Fooville)
+                .copied()
+                .collect(),
+        }
+    }
+}
+
 fn new_ids() -> Cards {
     Cards {
         inner: vec![
@@ -41,4 +61,22 @@ fn new_ids() -> Cards {
 
 fn main() {
     let ids = new_ids();
+
+    let young = YoungPeople {
+        inner: ids.inner.iter().filter(|id| id.age <= 20).collect(),
+    };
+
+    println!("ids");
+    for id in ids.inner.iter() {
+        println!("{id:?}");
+    }
+
+    println!("\nyoung");
+    for id in young.inner.iter() {
+        println!("{id:?}");
+    }
+
+    println!("{:?}", young);
+    let foovillians = young.living_in_fooville();
+    println!("{:?}", foovillians);
 }
