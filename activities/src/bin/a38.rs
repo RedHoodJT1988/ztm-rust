@@ -26,5 +26,17 @@ fn msg_excited() -> &'static str {
     "!"
 }
 
-fn main() {}
+fn main() {
+    use std::thread;
+
+    let msg_one = thread::spawn(msg_hello);
+    let msg_two = thread::spawn(msg_thread);
+    let msg_three = thread::spawn(msg_excited);
+
+    let msg_one = msg_one.join().expect("failed to join msg one");
+    let msg_two = msg_two.join().expect("failed to join msg two");
+    let msg_three = msg_three.join().expect("failed to join msg three");
+
+    println!("{}{}{}", msg_one, msg_two, msg_three);
+}
 
