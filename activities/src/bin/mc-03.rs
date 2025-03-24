@@ -53,6 +53,30 @@ impl Account for BankAccount {
     }
 }
 
+// Extension trait that adds additional functionality to `Account`
+trait AccountExt {
+    // Method to withdraw money (negative amount)
+    fn withdraw(&mut self, amount: f64);
+
+    // Method to deposit money (positive amount)
+    fn deposit(&mut self, amount: f64);
+}
+
+// Implementing the extension trait for any type that implements the Account trait
+impl<T> AccountExt for T
+where
+    T: Account,
+{
+    fn withdraw(&mut self, amount: f64) {
+        let amount = amount.abs();
+        self.adjust(-amount);
+    }
+
+    fn deposit(&mut self, amount: f64) {
+        self.adjust(amount);
+    }
+}
+
 /**********************************************
 * Do not change
 **********************************************/
