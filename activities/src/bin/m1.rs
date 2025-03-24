@@ -1,3 +1,4 @@
+
 // Topic: Control flow with macros
 //
 // Summary:
@@ -12,6 +13,10 @@
 // * The macro should check for all existing requirements as indicated in
 //   the `get_data` function.
 // * Use `cargo test --bin m1` to check your work.
+
+#![allow(dead_code)]
+#![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::manual_range_patterns)]
 
 use std::error::Error;
 use std::fmt;
@@ -43,6 +48,20 @@ impl fmt::Display for ServeError {
     }
 }
 
+macro_rules! validate_user {
+    ($user:expr) => {{
+        if !account_is_active($user) {
+            return Err(ServeError::AccountInactive);
+        }
+        if !is_logged_in($user) {
+            return Err(ServeError::NotLoggedIn);
+        }
+        if !is_authorized($user) {
+            return Err(ServeError::Unauthorized);
+        }
+    }};
+}
+
 fn account_is_active(user: UserId) -> bool {
     match user.0 {
         1 | 2 | 3 => true,
@@ -65,15 +84,7 @@ fn is_authorized(user: UserId) -> bool {
 }
 
 fn get_data<T: Into<Vec<u8>>>(resource: T, user: UserId) -> Result<Vec<u8>, ServeError> {
-    if !account_is_active(user) {
-        return Err(ServeError::AccountInactive);
-    }
-    if !is_logged_in(user) {
-        return Err(ServeError::NotLoggedIn);
-    }
-    if !is_authorized(user) {
-        return Err(ServeError::Unauthorized);
-    }
+    validate_user!(user);
     Ok(resource.into())
 }
 
@@ -126,4 +137,3 @@ mod test {
         assert!(data.is_ok());
     }
 }
-
