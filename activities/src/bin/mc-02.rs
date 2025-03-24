@@ -46,6 +46,51 @@ impl InventoryManager for BasicInventory {
     }
 }
 
+/// A proxy structure that adds alerting functionality to an inventory manager.
+#[derive(Debug, Default)]
+struct InventoryAlerter<M> {
+    thresholds: HashMap<String, i32>,
+    manager: M,
+}
+
+impl<M> InventoryAlerter<M>
+where
+    M: InventoryManager,
+{
+    fn new(manager: M) -> Self {
+        Self {
+            thresholds: HashMap::default(),
+            manager,
+        }
+    }
+
+    fn set_alert_threshold<I: Into<String>>(&mut self, item: I, threshold: i32) {
+        let item = item.into();
+        self.thresholds.insert(item, threshold);
+    }
+}
+
+impl<M> InventoryManager for InventoryAlerter<M>
+where
+    M: InventoryManager,
+{
+    fn update_quantity<I: Into<String>>(&mut self, item: I, amount: i32) {
+        let item = item.into();
+
+        self.manager.update_quantity(item.clone(), amount);
+
+        let threshold = self.thresholds.entry(item.clone()).or_insert_with(|| 50);
+        let new_quantity = self.manager.get_quantity(&item).unwrap_or_default();
+        if &new_quantity <= threshold {
+            println!("low quantity of {item}: {new_quantity}");
+        }
+    }
+
+    fn get_quantity<I: AsRef<str>>(&self, item: I) -> Option<i32> {
+        self.manager.get_quantity(item)
+    }
+}
+
 /***********************************************************************************************
 * Do not edit this function. It should work with the structure that you create without having to
 * make any modifications to the function.
@@ -62,7 +107,7 @@ fn main() {
     /******************************************************
      * Change the below line to create your proxy structure
      ******************************************************/
-    let mut inventory = BasicInventory::default();
+    let mut inventory = InventoryAlerter::new(BasicInventory::default());
 
     /***********************************************************************************************
      * Do not change anything else in this function. When implemented correctly, you should get 2
